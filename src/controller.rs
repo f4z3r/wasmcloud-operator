@@ -782,70 +782,70 @@ async fn daemonset_spec(config: &WasmCloudHostConfig, ctx: Arc<Context>) -> Resu
 
 async fn configure_hosts(config: &WasmCloudHostConfig, ctx: Arc<Context>) -> Result<()> {
     let mut env_vars = vec![];
-    if let Some(registry_credentials) = &config.spec.registry_credentials_secret {
-        let secrets_client =
-            Api::<Secret>::namespaced(ctx.client.clone(), &config.namespace().unwrap());
-        let secret = secrets_client
-            .get(registry_credentials)
-            .await
-            .map_err(|e| {
-                warn!("Failed to get image pull secret: {}", e);
-                e
-            })?;
-
-        let docker_config = DockerConfigJson::from_secret(secret.clone()).map_err(|e| {
-            warn!("Failed to convert image pull secret: {}", e);
-            Error::SecretError(format!(
-                "Failed to convert image pull secret {}: {}",
-                secret.metadata.name.clone().unwrap(),
-                e
-            ))
-        })?;
-
-        if docker_config.auths.len() > 1 {
-            warn!("Only one registry is supported");
-            return Err(Error::SecretError(format!(
-                "Only one registry is supported: the secret named {} contains {}",
-                secret.metadata.name.clone().unwrap(),
-                docker_config.auths.len()
-            )));
-        }
-
-        env_vars = vec![
-            EnvVar {
-                name: "WASMCLOUD_OCI_REGISTRY_USER".to_string(),
-                value: Some(
-                    docker_config
-                        .auths
-                        .values()
-                        .next()
-                        .unwrap()
-                        .username
-                        .clone(),
-                ),
-                ..Default::default()
-            },
-            EnvVar {
-                name: "WASMCLOUD_OCI_REGISTRY_PASSWORD".to_string(),
-                value: Some(
-                    docker_config
-                        .auths
-                        .values()
-                        .next()
-                        .unwrap()
-                        .password
-                        .expose_secret()
-                        .clone(),
-                ),
-                ..Default::default()
-            },
-            EnvVar {
-                name: "WASMCLOUD_OCI_REGISTRY".to_string(),
-                value: Some(docker_config.auths.keys().next().unwrap().clone()),
-                ..Default::default()
-            },
-        ];
-    }
+    // if let Some(registry_credentials) = &config.spec.registry_credentials_secret {
+    //     let secrets_client =
+    //         Api::<Secret>::namespaced(ctx.client.clone(), &config.namespace().unwrap());
+    //     let secret = secrets_client
+    //         .get(registry_credentials)
+    //         .await
+    //         .map_err(|e| {
+    //             warn!("Failed to get image pull secret: {}", e);
+    //             e
+    //         })?;
+    //
+    //     let docker_config = DockerConfigJson::from_secret(secret.clone()).map_err(|e| {
+    //         warn!("Failed to convert image pull secret: {}", e);
+    //         Error::SecretError(format!(
+    //             "Failed to convert image pull secret {}: {}",
+    //             secret.metadata.name.clone().unwrap(),
+    //             e
+    //         ))
+    //     })?;
+    //
+    //     if docker_config.auths.len() > 1 {
+    //         warn!("Only one registry is supported");
+    //         return Err(Error::SecretError(format!(
+    //             "Only one registry is supported: the secret named {} contains {}",
+    //             secret.metadata.name.clone().unwrap(),
+    //             docker_config.auths.len()
+    //         )));
+    //     }
+    //
+    //     env_vars = vec![
+    //         EnvVar {
+    //             name: "WASMCLOUD_OCI_REGISTRY_USER".to_string(),
+    //             value: Some(
+    //                 docker_config
+    //                     .auths
+    //                     .values()
+    //                     .next()
+    //                     .unwrap()
+    //                     .username
+    //                     .clone(),
+    //             ),
+    //             ..Default::default()
+    //         },
+    //         EnvVar {
+    //             name: "WASMCLOUD_OCI_REGISTRY_PASSWORD".to_string(),
+    //             value: Some(
+    //                 docker_config
+    //                     .auths
+    //                     .values()
+    //                     .next()
+    //                     .unwrap()
+    //                     .password
+    //                     .expose_secret()
+    //                     .clone(),
+    //             ),
+    //             ..Default::default()
+    //         },
+    //         EnvVar {
+    //             name: "WASMCLOUD_OCI_REGISTRY".to_string(),
+    //             value: Some(docker_config.auths.keys().next().unwrap().clone()),
+    //             ..Default::default()
+    //         },
+    //     ];
+    // }
 
     if config
         .spec
